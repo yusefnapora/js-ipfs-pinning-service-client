@@ -21,10 +21,14 @@ class PinningClient {
             throw new Error('Required option "accessToken" missing.')
         }
 
+        console.log('PinningClient opts: ', opts)
         const client = new ApiClient()
-        client.endpoint = endpoint
-        client.authorizations = {
-            'jwt': {
+        client.basePath = endpoint
+        client.defaultHeaders = {
+            'User-Agent': 'js-ipfs-pinning-service-client/0.0.1'
+        }
+        client.authentications = {
+            'accessToken': {
                 type: 'bearer',
                 accessToken: accessToken,
             }
@@ -58,7 +62,7 @@ class PinningClient {
      * 
      * List all the pin objects, matching optional filters; when no filter is provided, only successful pins are returned
      * @param {Object} opts Optional parameters
-     * @param {Array.<String>} opts.cid Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
+     * @param {String|Array.<String>} opts.cid Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
      * @param {String} opts.name Return pin objects with specified name (by default a case-sensitive, exact match)
      * @param {module:model/TextMatchingStrategy} opts.match Customize the text matching strategy applied when name filter is present
      * @param {Array.<module:model/Status>} opts.status Return pin objects for pins with the specified status
@@ -69,6 +73,9 @@ class PinningClient {
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
      */
     async * list(opts) {
+        if (!Array.isArray(opts.cid)) {
+            opts.cid = [opts.cid]
+        }
         let results = await this.ls(opts)
         const total = results.count
         let yielded = 0
@@ -131,6 +138,6 @@ class PinningClient {
     }
 }
 
-exports = {
+module.exports = {
     PinningClient
 }
