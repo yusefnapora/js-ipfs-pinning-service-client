@@ -4,6 +4,8 @@
   "description": "A client for the IPFS Pinning Services API",
   "main": "src/index.js",
   "scripts": {
+    "build": "cd generated && npm run build",
+    "prepack": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
