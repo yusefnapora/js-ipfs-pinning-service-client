@@ -96,7 +96,7 @@ class PinningClient {
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
      */
     async add(pin) {
-        return this.api.pinsPostWithHttpInfo(pin)
+        return this.api.pinsPost(pin)
     }
 
     /**
@@ -129,4 +129,8 @@ class PinningClient {
     async replace(requestId, pin) {
         return this.api.pinsRequestidPost(requestid, pin)
     }
+}
+
+exports = {
+    PinningClient
 }
