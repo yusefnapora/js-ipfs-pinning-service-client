@@ -5,15 +5,15 @@ const {ApiClient, PinsApi} = require('../generated')
 class PinningClient {
     /**
      * Construct a new PinningClient for a remote IPFS Pinning Service.
-     * 
-     * @param {Object} opts 
+     *
+     * @param {Object} opts
      * @param {String} opts.name The name of the remote pinning service
      * @param {String} opts.endpoint The remote pinning service endpoint URL
      * @param {String|Function} opts.accessToken A JWT access token for the remote pinning service, or a function that returns one
      */
     constructor(opts) {
         const {name, endpoint, accessToken} = opts
-        
+
         if (!endpoint) {
             throw new Error('Required option "endpoint" missing.')
         }
@@ -62,7 +62,7 @@ class PinningClient {
     /**
      * List pin objects, returning an async iterator that will yield all results. This may make multiple network requests
      * depending on the size of the result set.
-     * 
+     *
      * List all the pin objects, matching optional filters; when no filter is provided, only successful pins are returned
      * @param {Object} opts Optional parameters
      * @param {String|Array.<String>} opts.cid Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
@@ -102,7 +102,7 @@ class PinningClient {
     /**
      * Add pin object
      * Add a new pin object for the current access token
-     * @param {module:model/Pin} pin 
+     * @param {module:model/Pin} pin
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
      */
     async add(pin) {
@@ -112,7 +112,7 @@ class PinningClient {
     /**
      * Remove pin object
      * Remove a pin object
-     * @param {String} requestid 
+     * @param {String} requestid
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
      */
     async delete(requestId) {
@@ -122,7 +122,7 @@ class PinningClient {
     /**
      * Get pin object
      * Get a pin object and its status
-     * @param {String} requestid 
+     * @param {String} requestid
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
      */
     async get(requestId) {
@@ -132,8 +132,8 @@ class PinningClient {
     /**
      * Replace pin object
      * Replace an existing pin object (shortcut for executing remove and add operations in one step to avoid unnecessary garbage collection of blocks present in both recursive pins)
-     * @param {String} requestId 
-     * @param {module:model/Pin} pin 
+     * @param {String} requestId
+     * @param {module:model/Pin} pin
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
      */
     async replace(requestId, pin) {
@@ -141,6 +141,4 @@ class PinningClient {
     }
 }
 
-module.exports = {
-    PinningClient
-}
+module.exports = PinningClient
