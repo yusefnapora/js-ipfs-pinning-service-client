@@ -27,7 +27,7 @@ const config = {
 const client = new PinningClient(config)
 
 
-const cid = await ipfs.add(catPic)
+const {cid} = await ipfs.add(catPic)
 const {addresses} = await ipfs.id()
 const response = await client.add({
     cid: cid, 
