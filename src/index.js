@@ -21,7 +21,6 @@ class PinningClient {
             throw new Error('Required option "accessToken" missing.')
         }
 
-        console.log('PinningClient opts: ', opts)
         const client = new ApiClient()
         client.basePath = endpoint
         client.defaultHeaders = {
