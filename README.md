@@ -7,7 +7,7 @@
 
 An IPFS Pinning Service HTTP Client
 
-> This repo is contains a reference implementation of a client for the [IPFS Pinning Services API Spec](https://github.com/ipfs/pinning-services-api-spec)
+> This repo contains a reference implementation of a client for the [IPFS Pinning Services API Spec](https://github.com/ipfs/pinning-services-api-spec)
 
 ## Lead Maintainer
 
