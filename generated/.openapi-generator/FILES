@@ -1,6 +1,5 @@
 .babelrc
 .gitignore
-.openapi-generator-ignore
 .travis.yml
 README.md
 docs/Failure.md
@@ -24,11 +23,3 @@ src/model/PinResults.js
 src/model/PinStatus.js
 src/model/Status.js
 src/model/TextMatchingStrategy.js
-test/api/PinsApi.spec.js
-test/model/Failure.spec.js
-test/model/FailureError.spec.js
-test/model/Pin.spec.js
-test/model/PinResults.spec.js
-test/model/PinStatus.spec.js
-test/model/Status.spec.js
-test/model/TextMatchingStrategy.spec.js

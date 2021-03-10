@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "generate": "openapi-generator-cli generate -i pinning-service.yaml -g javascript -o ./generated --additional-properties=usePromises=true",
-    "build": "cd generated && npm install && npm run build",
-    "prepack": "npm run build",
+    "build-generated": "cd generated && npm install && npm run build",
+    "preinstall": "npm run build-generated",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
