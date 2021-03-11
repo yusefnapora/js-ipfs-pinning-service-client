@@ -106,7 +106,9 @@ class PinningClient {
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
      */
     async add(pin) {
-        pin.cid = pin.cid.toString()
+        if (pin.cid) {
+            pin.cid = pin.cid.toString()
+        }
         return this.api.pinsPost(pin)
     }
 
