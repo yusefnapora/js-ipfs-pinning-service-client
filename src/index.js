@@ -22,6 +22,7 @@ class PinningClient {
         }
 
         const client = new ApiClient()
+        client.cache = false
         client.basePath = endpoint.toString().replace(/\/$/, "") // trim trailing slashes
         client.defaultHeaders = {
             'User-Agent': 'js-ipfs-pinning-service-client/0.0.1'
@@ -55,8 +56,12 @@ class PinningClient {
         if (opts.cid) {
             if (!Array.isArray(opts.cid)) {
                 opts.cid = [opts.cid]
+                  .filter(c => !!c)
+                  .map(c => c.toString())
             }
-            opts.cid = opts.cid.map(c => c && c.toString())
+            if (opts.cid.length == 0) {
+                delete opts.cid
+            }
         }
         return this.api.pinsGet(opts)
     }
@@ -78,9 +83,6 @@ class PinningClient {
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
      */
     async * list(opts) {
-        if (!Array.isArray(opts.cid)) {
-            opts.cid = [opts.cid]
-        }
         let results = await this.ls(opts)
         const total = results.count
         let yielded = 0
@@ -111,7 +113,8 @@ class PinningClient {
         if (pin.cid) {
             pin.cid = pin.cid.toString()
         }
-        return this.api.pinsPost(pin)
+        const resp = await this.api.pinsPost(pin)
+        return resp
     }
 
     /**
