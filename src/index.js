@@ -56,7 +56,7 @@ class PinningClient {
             if (!Array.isArray(opts.cid)) {
                 opts.cid = [opts.cid]
             }
-            opts.cid = opts.cid.map(c => c.toString())
+            opts.cid = opts.cid.map(c => c && c.toString())
         }
         return this.api.pinsGet(opts)
     }
