@@ -52,10 +52,12 @@ class PinningClient {
      * @return {Promise} a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
      */
     async ls(opts) {
-        if (!Array.isArray(opts.cid)) {
-            opts.cid = [opts.cid]
+        if (opts.cid) {
+            if (!Array.isArray(opts.cid)) {
+                opts.cid = [opts.cid]
+            }
+            opts.cid = opts.cid.map(c => c.toString())
         }
-        opts.cid = opts.cid.map(c => c.toString())
         return this.api.pinsGet(opts)
     }
 
