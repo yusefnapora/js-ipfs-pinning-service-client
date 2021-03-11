@@ -22,7 +22,7 @@ class PinningClient {
         }
 
         const client = new ApiClient()
-        client.basePath = endpoint
+        client.basePath = endpoint.toString().replace(/\/$/, "") // trim trailing slashes
         client.defaultHeaders = {
             'User-Agent': 'js-ipfs-pinning-service-client/0.0.1'
         }
