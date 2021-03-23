@@ -5,10 +5,12 @@
   "main": "src/index.js",
   "scripts": {
     "generate": "openapi-generator-cli generate -i pinning-service.yaml -g javascript -o ./generated --additional-properties=usePromises=true",
-    "build-generated": "cd generated && npm install && npm run build",
-    "deps-generated": "cd generated && npm install",
-    "preinstall": "npm run deps-generated",
-    "test": "aegir test"
+    "build:generated": "cd generated && npm install && npm run build",
+    "deps:generated": "cd generated && npm install",
+    "preinstall": "npm run deps:generated",
+    "test": "aegir test",
+    "test:node": "aegir test -t node",
+    "test:browser": "aegir test -t browser"
   },
   "repository": {
     "type": "git",
@@ -27,5 +29,10 @@
     "cids": "^1.1.6",
     "mock-ipfs-pinning-service": "^0.1.2",
     "multihashing-async": "^2.1.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "events": "^3.3.0",
+    "querystring": "^0.2.1"
   }
 }

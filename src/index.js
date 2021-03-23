@@ -25,7 +25,7 @@ class PinningClient {
     client.cache = false
     client.basePath = endpoint.toString().replace(/\/$/, '') // trim trailing slashes
     client.defaultHeaders = {
-      'User-Agent': 'js-ipfs-pinning-service-client/0.0.1'
+      // 'User-Agent': 'js-ipfs-pinning-service-client/0.0.1'
     }
     client.authentications = {
       accessToken: {
