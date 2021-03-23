@@ -217,7 +217,7 @@ describe('PinningClient', () => {
     })
 
     // TODO: remove .skip once this is merged: https://github.com/ipfs-shipyard/js-mock-ipfs-pinning-service/pull/4
-    it.skip('allows filtering pins before a given Date', async () => {
+    it.skip('lists pins created before a given Date', async () => {
       const info = await client.ls({status: ['pinned', 'queued', 'pinning', 'failed']})
       const timestamps = info.results.map(r => new Date(r.created)).sort((a, b) => a - b)
 
@@ -226,7 +226,7 @@ describe('PinningClient', () => {
       expect(resp.count).to.equal(3)
     })
 
-    it.skip('allows filtering pins after a given Date', async () => {
+    it.skip('lists pins created after a given Date', async () => {
       const info = await client.ls({status: ['pinned', 'queued', 'pinning', 'failed']})
       const timestamps = info.results.map(r => new Date(r.created)).sort((a, b) => a - b)
 
@@ -241,7 +241,7 @@ describe('PinningClient', () => {
       expect(resp.count).to.equal(2)
     })
 
-    it('returns pins matching metadata', async () => {
+    it('lists pins matching metadata', async () => {
       const cid = 'QmaL3haFDRQoGW3YShV6u52eDH8RVPGQgGZrxza1p353pA'
       const meta = {foo: 'bar'}
       await addPinRaw({cid, meta})
