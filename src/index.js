@@ -54,6 +54,7 @@ class PinningClient {
    * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
    */
   async ls (opts) {
+    opts = opts || {}
     if (opts.cid) {
       if (!Array.isArray(opts.cid)) {
         opts.cid = [opts.cid]
@@ -63,6 +64,9 @@ class PinningClient {
       if (opts.cid.length === 0) {
         delete opts.cid
       }
+    }
+    if (!opts.status || opts.status.length < 1) {
+      opts.status = ['pinned']
     }
     return this.api.pinsGet(opts)
   }

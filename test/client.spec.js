@@ -11,7 +11,9 @@ const PinningClient = require('../src')
 const FIXTURE_CIDS = [
   'bafybeieeomufuwkwf7sbhyo7yiifaiknm7cht5tc3vakn25vbvazyasp3u',
   'bafybeifszd4wbkeekwzwitvgijrw6zkzijxutm4kdumkxnc6677drtslni',
-  'bafybeihhii26gwp4w7b7w7d57nuuqeexau4pnnhrmckikaukjuei2dl3fq'
+  'bafybeihhii26gwp4w7b7w7d57nuuqeexau4pnnhrmckikaukjuei2dl3fq',
+  'QmaNZ2FCgvBPqnxtkbToVVbK2Nes6xk5K4Ns6BsmkPucAM',
+  'QmXFgNWRg3vyoMn887DFRCPK8G5atgqzHy7PyjWDmYMCnG',
 ]
 
 describe('PinningClient', async () => {
@@ -164,7 +166,87 @@ describe('PinningClient', async () => {
   })
 
   describe('ls', async () => {
+    const client = new PinningClient(validConfig)
+    // the mock pinning service will set the status based on the name
+    const fixturePins = {
+      'pinned-one': FIXTURE_CIDS[0],
+      'pinned-two': FIXTURE_CIDS[1],
+      'pinning-three': FIXTURE_CIDS[2],
+      'queued-four': FIXTURE_CIDS[3],
+      'failed-five': FIXTURE_CIDS[4],
+    }
+    beforeEach(async () => {
+      for (const [name, cid] of Object.entries(fixturePins)) {
+        await addPinRaw({cid, name})
+      }
+    })
+    afterEach(async () => {
+      await clearAllPins()
+    })
 
+    it('lists pins with status === "pinned" by default', async () => {
+      const resp = await client.ls()
+      expect(resp.count).to.equal(2)
+      const cids = resp.results.map(r => r.pin.cid)
+      expect(cids).to.contain(fixturePins['pinned-one'])
+      expect(cids).to.contain(fixturePins['pinned-two'])
+    })
+
+    it('lists pins with any matching status', async () => {
+      const resp = await client.ls({status: ['queued', 'pinning']})
+      expect(resp.count).to.equal(2)
+      const cids = resp.results.map(r => r.pin.cid)
+      expect(cids).to.contain(fixturePins['pinning-three'])
+      expect(cids).to.contain(fixturePins['queued-four'])
+    })
+
+    it('lists pins with matching CID', async () => {
+      const cid = fixturePins['queued-four']
+      const resp = await client.ls({cid, status: ['queued', 'pinning']})
+      expect(resp.count).to.equal(1)
+      expect(resp.results[0].pin.cid).to.equal(cid)
+    })
+
+    it('lists pins with matching name', async () => {
+      const resp = await client.ls({name: 'pinned-one'})
+      expect(resp.count).to.equal(1)
+      expect(resp.results[0].pin.name).to.equal('pinned-one')
+      expect(resp.results[0].pin.cid).to.equal(fixturePins['pinned-one'])
+    })
+
+    // TODO: remove .skip once this is merged: https://github.com/ipfs-shipyard/js-mock-ipfs-pinning-service/pull/4
+    it.skip('allows filtering pins before a given Date', async () => {
+      const info = await client.ls({status: ['pinned', 'queued', 'pinning', 'failed']})
+      const timestamps = info.results.map(r => new Date(r.created)).sort((a, b) => a - b)
+
+      const before = timestamps[3]
+      const resp = await client.ls({before, status: ['pinned', 'queued', 'pinning', 'failed']})
+      expect(resp.count).to.equal(3)
+    })
+
+    it.skip('allows filtering pins after a given Date', async () => {
+      const info = await client.ls({status: ['pinned', 'queued', 'pinning', 'failed']})
+      const timestamps = info.results.map(r => new Date(r.created)).sort((a, b) => a - b)
+
+      const after = timestamps[2]
+      const expected = timestamps.length - 3
+      const resp = await client.ls({after, status: ['pinned', 'queued', 'pinning', 'failed']})
+      expect(resp.count).to.equal(expected)
+    })
+
+    it('limits the number of pins returned', async () => {
+      const resp = await client.ls({limit: 2, status: ['pinned', 'queued', 'pinning', 'failed']})
+      expect(resp.count).to.equal(2)
+    })
+
+    it('returns pins matching metadata', async () => {
+      const cid = 'QmaL3haFDRQoGW3YShV6u52eDH8RVPGQgGZrxza1p353pA'
+      const meta = {foo: 'bar'}
+      await addPinRaw({cid, meta})
+      const resp = await client.ls({meta, status: ['pinned', 'queued', 'pinning', 'failed']})
+      expect(resp.count).to.equal(1)
+      expect(resp.results[0].pin.meta).to.deep.equal(meta)
+    })
   })
 })
 
@@ -173,7 +255,7 @@ describe('PinningClient', async () => {
 // this way we don't have to use the system-under-test to setup the test, which could mask bugs
 function httpApi() {
   const headers = {'Authorization': `Bearer ${process.env.PINNING_SERVICE_KEY}`}
-  const url = `${process.env.PINNING_SERVICE_ENDPOINT}`
+  const url = process.env.PINNING_SERVICE_ENDPOINT
   const get = bent(url, headers, 'json')
   const post = bent('POST', url, headers, 'json', 202) // DELETE, POST, etc use 202 status for success
   const del = bent('DELETE', url, headers, 202)
