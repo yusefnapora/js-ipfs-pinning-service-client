@@ -4,6 +4,8 @@ const { expect } = chai
 const chaiAsPromised = require("chai-as-promised")
 chai.use(chaiAsPromised)
 
+const CID = require('cids')
+const multihashing = require('multihashing-async')
 const bent = require('bent')
 
 const PinningClient = require('../src')
@@ -16,7 +18,7 @@ const FIXTURE_CIDS = [
   'QmXFgNWRg3vyoMn887DFRCPK8G5atgqzHy7PyjWDmYMCnG',
 ]
 
-describe('PinningClient', async () => {
+describe('PinningClient', () => {
   const validConfig = {
     name: 'pinbot',
     endpoint: process.env.PINNING_SERVICE_ENDPOINT,
@@ -43,7 +45,7 @@ describe('PinningClient', async () => {
     })
   })
 
-  describe('add', async () => {
+  describe('add', () => {
     const client = new PinningClient(validConfig)
     afterEach(async () => {
       await clearAllPins()
@@ -87,7 +89,7 @@ describe('PinningClient', async () => {
     })
   })
 
-  describe('delete', async () => {
+  describe('delete', () => {
     const client = new PinningClient(validConfig)
     beforeEach(async () => {
       for (const cid of FIXTURE_CIDS) {
@@ -113,7 +115,7 @@ describe('PinningClient', async () => {
     })
   })
 
-  describe('get', async () => {
+  describe('get', () => {
     const client = new PinningClient(validConfig)
     beforeEach(async () => {
       for (const cid of FIXTURE_CIDS) {
@@ -132,12 +134,12 @@ describe('PinningClient', async () => {
       expect(pin.cid).to.equal(cid)
     })
 
-    it('throws if the requestid does not exist', () => {
+    it('throws if the requestid does not exist', async () => {
       expect(client.get(100000)).to.eventually.throw()
     })
   })
 
-  describe('replace', async () => {
+  describe('replace', () => {
     const client = new PinningClient(validConfig)
     beforeEach(async () => {
       for (const cid of FIXTURE_CIDS) {
@@ -165,7 +167,7 @@ describe('PinningClient', async () => {
     })
   })
 
-  describe('ls', async () => {
+  describe('ls', () => {
     const client = new PinningClient(validConfig)
     // the mock pinning service will set the status based on the name
     const fixturePins = {
@@ -248,8 +250,39 @@ describe('PinningClient', async () => {
       expect(resp.results[0].pin.meta).to.deep.equal(meta)
     })
   })
+
+  describe('list', () => {
+    const client = new PinningClient(validConfig)
+    const numPins = 100
+
+    beforeEach(async () => {
+      for (let i = 0; i < numPins; i++) {
+        const cid = await testCid(i)
+        const name = `pinned-${i}`
+        await addPinRaw({cid, name})
+      }
+    })
+    afterEach(async () => {
+      await clearAllPins()
+    })
+
+    it('returns all results as an async iterator', async () => {
+      let count = 0
+      for await (const pin of client.list()) {
+        count += 1
+      }
+      expect(count).to.equal(numPins)
+    })
+  })
 })
 
+
+async function testCid(index) {
+  const content = new TextEncoder().encode(`test-content-${index}`)
+  const hash = await multihashing(content, 'sha2-256')
+  const cid = new CID(1, 'dag-pb', hash)
+  return cid.toString()
+}
 
 // we use raw HTTP requests to list and clear pins from the mock pinning service
 // this way we don't have to use the system-under-test to setup the test, which could mask bugs

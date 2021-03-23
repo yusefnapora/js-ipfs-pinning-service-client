@@ -89,6 +89,7 @@ class PinningClient {
    * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
    */
   async * list (opts) {
+    opts = opts || {}
     let results = await this.ls(opts)
     const total = results.count
     let yielded = 0

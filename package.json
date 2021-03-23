@@ -24,6 +24,8 @@
     "@openapitools/openapi-generator-cli": "^2.1.26",
     "aegir": "^32.1.0",
     "bent": "^7.3.12",
-    "mock-ipfs-pinning-service": "^0.1.2"
+    "cids": "^1.1.6",
+    "mock-ipfs-pinning-service": "^0.1.2",
+    "multihashing-async": "^2.1.2"
   }
 }
