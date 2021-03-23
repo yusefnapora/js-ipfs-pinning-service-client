@@ -8,7 +8,7 @@
     "build-generated": "cd generated && npm install && npm run build",
     "deps-generated": "cd generated && npm install",
     "preinstall": "npm run deps-generated",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "aegir test"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,8 @@
   "homepage": "https://github.com/yusefnapora/js-ipfs-pinning-service-client#readme",
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.1.26",
-    "aegir": "^32.1.0"
+    "aegir": "^32.1.0",
+    "bent": "^7.3.12",
+    "mock-ipfs-pinning-service": "^0.1.2"
   }
 }
