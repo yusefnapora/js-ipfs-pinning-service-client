@@ -118,9 +118,10 @@ class PinningClient {
    * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
    */
   async add (pin) {
-    if (pin.cid) {
-      pin.cid = pin.cid.toString()
+    if (!pin.cid) {
+      throw new Error('unable to add pin without CID')
     }
+    pin.cid = pin.cid.toString()
     const resp = await this.api.pinsPost(pin)
     return resp
   }
@@ -133,6 +134,22 @@ class PinningClient {
    * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
    */
   async delete (requestid) {
+    // For Reasons Unknown, when the generated client gets a 404 from a DELETE request in the browser,
+    // it throws an Error that's not contained in a promise and thus doesn't get caught if you wrap the
+    // delete request in a try/catch.
+    // To work around this, we first do a get request and return immediately if the get request returns a 404.
+    // Things seem to work as expected on Node, so we check for the window var first to only run the extra
+    // request in the browser.
+    if (typeof window !== 'undefined') {
+      try {
+        const existing = await this.get(requestid)
+      } catch (e) {
+        if (e.status === 404) {
+          return
+        }
+        throw e
+      }
+    }
     return this.api.pinsRequestidDelete(requestid)
   }
 

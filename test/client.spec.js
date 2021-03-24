@@ -4,11 +4,12 @@ const { expect } = chai
 const chaiAsPromised = require("chai-as-promised")
 chai.use(chaiAsPromised)
 
-const CID = require('cids')
-const multihashing = require('multihashing-async')
+// const CID = require('cids')
+// const multihashing = require('multihashing-async')
 const bent = require('bent')
 
 const PinningClient = require('../src')
+// const { TextEncoder } = require('web-encoding')
 
 const FIXTURE_CIDS = [
   'bafybeieeomufuwkwf7sbhyo7yiifaiknm7cht5tc3vakn25vbvazyasp3u',
@@ -52,7 +53,7 @@ describe('PinningClient', () => {
     })
 
     it('requires a CID', async () => {
-      expect(client.add({})).to.eventually.throw()
+      expect(client.add({})).to.be.rejected
     })
 
     it('adds a pin by its CID', async () => {
@@ -106,12 +107,17 @@ describe('PinningClient', () => {
       expect(requestid).to.not.be.empty
       await client.delete(requestid)
       
-      expect(getRawPinStatusByRequestId(requestid)).to.eventually.throw()
+      expect(getRawPinStatusByRequestId(requestid)).to.be.rejected
       expect(getRawPinStatusByCid(cid)).to.eventually.be.null
     })
 
     it('does nothing if the requestid does not exist', async () => {
-      expect(client.delete(100000)).to.eventually.not.throw()
+      try {
+        client.delete(100000)
+      } catch (e) {
+        console.log('delete err', e)
+        throw e
+      }
     })
   })
 
@@ -135,7 +141,7 @@ describe('PinningClient', () => {
     })
 
     it('throws if the requestid does not exist', async () => {
-      expect(client.get(100000)).to.eventually.throw()
+      expect(client.get(100000)).to.be.rejected
     })
   })
 
@@ -163,7 +169,7 @@ describe('PinningClient', () => {
 
     it('throws if requestid does not exist', async () => {
       const pin = {cid: FIXTURE_CIDS[0], name: 'foobar'}
-      expect(client.replace(1000000, pin)).to.eventually.throw()
+      expect(client.replace(1000000, pin)).to.be.rejected
     })
   })
 
@@ -278,10 +284,11 @@ describe('PinningClient', () => {
 
 
 async function testCid(index) {
-  const content = new TextEncoder().encode(`test-content-${index}`)
-  const hash = await multihashing(content, 'sha2-256')
-  const cid = new CID(1, 'dag-pb', hash)
-  return cid.toString()
+  return `fake-cid-${index}`
+  // const content = new TextEncoder().encode(`test-content-${index}`)
+  // const hash = await multihashing(content, 'sha2-256')
+  // const cid = new CID(1, 'dag-pb', hash)
+  // return cid.toString()
 }
 
 // we use raw HTTP requests to list and clear pins from the mock pinning service
