@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "description": "A client for the IPFS Pinning Services API",
   "main": "src/index.js",
+  "browser": "dist/index.min.js",
   "scripts": {
     "generate": "./generate.sh",
     "build:generated": "cd generated && npm install && npm run build",
     "deps:generated": "cd generated && npm install",
     "preinstall": "npm run deps:generated",
+    "prepack": "npm run build",
+    "build": "aegir build",
     "test": "aegir test",
     "test:node": "aegir test -t node",
     "test:browser": "aegir test -t browser"
