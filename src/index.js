@@ -2,6 +2,18 @@
 
 const { ApiClient, PinsApi } = require('../generated')
 
+/**
+ * @typedef {import('../generated').Status} Status
+ * @typedef {import('../generated').TextMatchingStrategy} TextMatchingStrategy
+ * @typedef {import('../generated').Pin} Pin
+ * @typedef {import('../generated').PinStatus} PinStatus
+ * @typedef {import('../generated').PinResults} PinResults
+
+ */
+
+/**
+ * A client for a remote IPFS pinning service.
+ */
 class PinningClient {
   /**
    * Construct a new PinningClient for a remote IPFS Pinning Service.
@@ -42,33 +54,26 @@ class PinningClient {
    * List pin objects, returning a single page of results.
    * List all the pin objects, matching optional filters; when no filter is provided, only successful pins are returned
    *
-   * @param {Object} opts - Optional parameters
-   * @param {string | Array.<string>} opts.cid - Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
-   * @param {string} opts.name - Return pin objects with specified name (by default a case-sensitive, exact match)
-   * @param {module:model/TextMatchingStrategy} opts.match - Customize the text matching strategy applied when name filter is present
-   * @param {Array.<module:model/Status>} opts.status - Return pin objects for pins with the specified status
-   * @param {Date} opts.before - Return results created (queued) before provided timestamp
-   * @param {Date} opts.after - Return results created (queued) after provided timestamp
-   * @param {number} opts.limit - Max records to return (default to 10)
-   * @param {Object.<string, {String: string}>} opts.meta - Return pin objects that match specified metadata
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
+   * @param {Object} [opts] - Optional parameters
+   * @param {string | Array.<string>} [opts.cid] - Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
+   * @param {string} [opts.name] - Return pin objects with specified name (by default a case-sensitive, exact match)
+   * @param {TextMatchingStrategy} [opts.match] - Customize the text matching strategy applied when name filter is present
+   * @param {Array.<Status>} [opts.status] - Return pin objects for pins with the specified status
+   * @param {Date} [opts.before] - Return results created (queued) before provided timestamp
+   * @param {Date} [opts.after] - Return results created (queued) after provided timestamp
+   * @param {number} [opts.limit] - Max records to return (default to 10)
+   * @param {Object.<string, {String: string}>} [opts.meta] - Return pin objects that match specified metadata
+   * @returns {Promise.<PinResults>} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link PinResults}
    */
   async ls (opts) {
     opts = opts || {}
-    if (opts.cid) {
-      if (!Array.isArray(opts.cid)) {
-        opts.cid = [opts.cid]
-          .filter(c => Boolean(c))
-          .map(c => c.toString())
-      }
-      if (opts.cid.length === 0) {
-        delete opts.cid
-      }
-    }
+
+    // default to 'pinned' status if unset
     if (!opts.status || opts.status.length < 1) {
       opts.status = ['pinned']
     }
-    return this.api.pinsGet(opts)
+
+    return this.api.pinsGet({...opts, cid: ensureCidArray(opts.cid)})
   }
 
   /**
@@ -77,16 +82,16 @@ class PinningClient {
    *
    * List all the pin objects, matching optional filters; when no filter is provided, only successful pins are returned
    *
-   * @param {Object} opts - Optional parameters
-   * @param {string | Array.<string>} opts.cid - Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
-   * @param {string} opts.name - Return pin objects with specified name (by default a case-sensitive, exact match)
-   * @param {module:model/TextMatchingStrategy} opts.match - Customize the text matching strategy applied when name filter is present
-   * @param {Array.<module:model/Status>} opts.status - Return pin objects for pins with the specified status
-   * @param {Date} opts.before - Return results created (queued) before provided timestamp
-   * @param {Date} opts.after - Return results created (queued) after provided timestamp
-   * @param {number} opts.limit - Max records to return for each network request (default to 10)
-   * @param {Object.<string, {String: string}>} opts.meta - Return pin objects that match specified metadata
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinResults}
+   * @param {Object} [opts] - Optional parameters
+   * @param {string | Array.<string>} [opts.cid] - Return pin objects responsible for pinning the specified CID(s); be aware that using longer hash functions introduces further constraints on the number of CIDs that will fit under the limit of 2000 characters per URL  in browser contexts
+   * @param {string} [opts.name] - Return pin objects with specified name (by default a case-sensitive, exact match)
+   * @param {TextMatchingStrategy} [opts.match] - Customize the text matching strategy applied when name filter is present
+   * @param {Array.<Status>} [opts.status] - Return pin objects for pins with the specified status
+   * @param {Date} [opts.before] - Return results created (queued) before provided timestamp
+   * @param {Date} [opts.after] - Return results created (queued) after provided timestamp
+   * @param {number} [opts.limit] - Max records to return for each network request (default to 10)
+   * @param {Object.<string, {String: string}>} [opts.meta] - Return pin objects that match specified metadata
+   * @returns {AsyncGenerator.<PinStatus>} - an async generator that will yield a PinStatus object for each matching pin
    */
   async * list (opts) {
     opts = opts || {}
@@ -114,8 +119,8 @@ class PinningClient {
    * Add pin object
    * Add a new pin object for the current access token
    *
-   * @param {module:model/Pin} pin
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
+   * @param {Pin} pin
+   * @returns {Promise.<PinStatus>} - a Promise that resolves to a PinStatus object describing the added pin
    */
   async add (pin) {
     if (!pin.cid) {
@@ -128,10 +133,10 @@ class PinningClient {
 
   /**
    * Remove pin object
-   * Remove a pin object
+   * Remove a pin object by its request id. Does nothing if the request id does not exist on the server.
    *
    * @param {string} requestid - the requestid from a previously pinned object
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with an object containing HTTP response
+   * @returns {Promise<void>} - a {@link https://www.promisejs.org/|Promise} that resolves with no value on success.
    */
   async delete (requestid) {
     // For Reasons Unknown, when the generated client gets a 404 from a DELETE request in the browser,
@@ -142,7 +147,7 @@ class PinningClient {
     // request in the browser.
     if (typeof window !== 'undefined') {
       try {
-        const existing = await this.get(requestid)
+        await this.get(requestid)
       } catch (e) {
         if (e.status === 404) {
           return
@@ -150,7 +155,7 @@ class PinningClient {
         throw e
       }
     }
-    return this.api.pinsRequestidDelete(requestid)
+    await this.api.pinsRequestidDelete(requestid)
   }
 
   /**
@@ -158,7 +163,7 @@ class PinningClient {
    * Get a pin object and its status
    *
    * @param {string} requestid - the requestid from a previously pinned object
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
+   * @returns {Promise<PinStatus>} - a Promise that resolves to a PinStatus object describing the requested pin
    */
   async get (requestid) {
     return this.api.pinsRequestidGet(requestid)
@@ -169,12 +174,37 @@ class PinningClient {
    * Replace an existing pin object (shortcut for executing remove and add operations in one step to avoid unnecessary garbage collection of blocks present in both recursive pins)
    *
    * @param {string} requestid - the requestid from a previously pinned object
-   * @param {module:model/Pin} pin
-   * @returns {Promise} - a {@link https://www.promisejs.org/|Promise}, with data of type {@link module:model/PinStatus}
+   * @param {Pin} pin
+   * @returns {Promise<PinStatus>} - a Promise that resolves to a PinStatus object describing the newly replaced pin
    */
   async replace (requestid, pin) {
     return this.api.pinsRequestidPost(requestid, pin)
   }
+}
+
+/**
+ * Helper to wrap a CID param in an array, if it's not already. 
+ * 
+ * Also filters out null CIDs from the input array and returns undefined
+ * if the result is empty - otherwise the generated client gets confused by the empty array.
+ * 
+ * If given null or undefined, returns undefined.
+ * 
+ * @param {string|Array<string>|null|undefined} cidOrArray 
+ * @return {Array<string>|undefined}
+ */
+function ensureCidArray(cidOrArray) {
+  if (!cidOrArray) {
+    return undefined
+  }
+  if (Array.isArray(cidOrArray)) {
+    const cids = cidOrArray.filter(c => c != null).map(c => c.toString())
+    if (cids.length == 0) {
+      return undefined
+    }
+    return cids
+  }
+  return [cidOrArray.toString()]
 }
 
 module.exports = PinningClient
